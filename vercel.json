@@ -1,0 +1,15 @@
+{
+  "routes": [
+    {
+      "src": "/dialog",
+      "dest": "api/app.js",
+      "methods": ["POST"]
+    }
+  ],
+  "functions": {
+    "api/app.js": {
+      "memory": 1024,
+      "maxDuration": 3
+    }
+  }
+}
