@@ -1,10 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Fuse from 'fuse.js';
 
 import { DEFAULT_ANSWER, DEFAULT_ENDING, Commands, COMMANDS_LIST } from './constants';
 import { Anime, Params, Session, UserSession, Version, Request, Response } from "./types";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const ANIME_LIST: Array<Anime> = require('../resources/anime-list.json');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const GENRES_LIST: Array<string> = require('../resources/genres.json');
 
 const sessionStorage: { [item: string]: UserSession } = {};
@@ -72,7 +75,7 @@ module.exports = async (req, res) => {
             }
 
             const [searchResult] = commandsSearcher.search(orig);
-            let { item } = searchResult || {};
+            const { item } = searchResult || {};
             const { command: callToAction } = item || {};
 
             switch (callToAction) {
@@ -162,7 +165,7 @@ module.exports = async (req, res) => {
                     // random anime
                     let availableAnimeList = ANIME_LIST;
                     if (userSession && userSession.anime) {
-                        availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
+                        availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
                     }
 
                     const anime = pickRandomItem(availableAnimeList);
