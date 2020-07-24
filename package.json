@@ -2,7 +2,7 @@
   "name": "alice-anime-dialog",
   "version": "1.0.0",
   "description": "Dialog for Yandex.Alice",
-  "main": "src/app.js",
+  "main": "src/app.ts",
   "repository": "https://github.com/opa-oz/alice-anime-dialog.git",
   "author": "Vladimir <opaozhub@gmail.com>",
   "license": "MIT",
@@ -10,16 +10,21 @@
   "scripts": {
     "start": "micro",
     "build": "chmod +x ./build-script.sh && ./build-script.sh",
-    "deploy": "node ./scripts/prepare-resources.js && vercel"
+    "deploy": "npm run build && node ./scripts/prepare-resources.js && webpack"
   },
   "dependencies": {
+    "@types/fuse": "^2.6.0",
     "chalk": "^4.1.0",
-    "enum": "^3.0.4",
     "fs-extra": "^9.0.1",
     "fuse.js": "^6.4.0",
     "global": "^4.4.0",
     "micro": "^9.3.4",
-    "vercel": "^19.2.0"
+    "source-map-loader": "^1.0.1",
+    "ts-loader": "^8.0.1",
+    "typescript": "^3.9.7",
+    "vercel": "^19.2.0",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
   },
   "engines": {
     "node": "12.x"

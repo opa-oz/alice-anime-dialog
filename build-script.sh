@@ -1,4 +1,5 @@
 rm -rf ./public || true
+rm -rf ./dist || true
 
 mkdir public
 
