@@ -16,7 +16,7 @@
     "chalk": "^4.1.0",
     "enum": "^3.0.4",
     "fs-extra": "^9.0.1",
-    "fuzzy-search": "^3.2.1",
+    "fuse.js": "^6.4.0",
     "global": "^4.4.0",
     "micro": "^9.3.4",
     "vercel": "^19.2.0"

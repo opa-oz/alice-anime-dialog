@@ -1,10 +1,10 @@
-import FuzzySearch from 'fuzzy-search';
+import Fuse from 'fuse.js';
 
-const { DEFAULT_ANSWER, ANIME_LIST, GENRES_LIST, DEFAULT_ENDING, commands } = require('../src/constants');
+import { DEFAULT_ANSWER, ANIME_LIST, GENRES_LIST, DEFAULT_ENDING, commands } from '../src/constants';
 
 const sessionStorage = {};
 
-const pickRandomAnime = (array = ANIME_LIST) => {
+const pickRandomItem = (array = ANIME_LIST) => {
     return array[Math.floor(Math.random() * array.length)]
 };
 
@@ -72,10 +72,42 @@ const COMMANDS_LIST = [
         text: 'больше',
         command: commands.MORE,
     },
+    {
+        text: 'любой жанр',
+        command: commands.ANY_GENRE,
+    },
+    {
+        text: 'в любом жанре',
+        command: commands.ANY_GENRE,
+    },
+    {
+        text: 'на твой выбор',
+        command: commands.ANY_GENRE,
+    },
+    {
+        text: 'другой жанр',
+        command: commands.ANY_GENRE,
+    },
+    {
+        text: 'порекомендуй аниме',
+        command: commands.RANDOM
+    },
+    {
+        text: 'случайное аниме',
+        command: commands.RANDOM
+    },
+    {
+        text: 'что посмотреть',
+        command: commands.RANDOM
+    },
+    {
+        text: 'аниме посмотреть',
+        command: commands.RANDOM
+    },
 ];
 
-const genreSearcher = new FuzzySearch(GENRES_LIST, [], { sort: true });
-const commandsSearcher = new FuzzySearch(COMMANDS_LIST, ['text'], { sort: true });
+const genreSearcher = new Fuse(GENRES_LIST, { shouldSort: true });
+const commandsSearcher = new Fuse(COMMANDS_LIST, { keys: ['text'], shouldSort: true });
 
 module.exports = async (req, res) => {
     const { request, session, version } = req.body || {};
@@ -98,10 +130,11 @@ module.exports = async (req, res) => {
             const orig = request.original_utterance;
             const command = request.command;
 
-            const [foundGenre] = genreSearcher.search(command);
-            if (foundGenre) {
+            let [foundGenre] = genreSearcher.search(command);
+            if (foundGenre && foundGenre.item) {
+                foundGenre = foundGenre.item;
                 const availableAnimeList = ANIME_LIST.filter((a) => a.genres.includes(foundGenre));
-                const anime = pickRandomAnime(availableAnimeList);
+                const anime = pickRandomItem(availableAnimeList);
 
                 sessionStorage[session.session_id] = {
                     isGenreShown: true,
@@ -112,13 +145,14 @@ module.exports = async (req, res) => {
                 };
 
                 return responseToUser(defaultRes, {
-                    text: `Жанр "${foundGenre}" сейчас на пике популярности. Могу предложить посмотреть "${anime.name}". Рассказать подробнее? `
+                    text: `Жанр "${foundGenre}" сейчас на пике популярности. Могу предложить посмотреть "${anime.name}".\nРассказать подробнее? `
                 }); // *жанр*
             }
 
             const [searchResult] = commandsSearcher.search(orig);
-            console.log('🥔', commandsSearcher.search(orig), orig);
-            let { command: callToAction } = searchResult || {};
+            console.log('❄️', commandsSearcher.search(orig), orig);
+            let { item } = searchResult || {};
+            const { command: callToAction } = item || {};
 
             if (callToAction) {
                 if (callToAction.is(commands.AGREE) && userSession) {
@@ -151,22 +185,66 @@ module.exports = async (req, res) => {
                 }
 
                 if (callToAction.is(commands.MORE) && userSession) {
-                    if (userSession.isDesciptionShown) {
-                        const { genre, anime } = userSession;
+                    const { genre, anime } = userSession;
 
-                        const availableAnimeList = ANIME_LIST
-                            .filter((a) => a.genres.includes(genre))
-                            .filter(({ index }) => index !== anime.index);
-                        const nextAnime = pickRandomAnime(availableAnimeList);
+                    const availableAnimeList = ANIME_LIST
+                        .filter((a) => a.genres.includes(genre))
+                        .filter(({ index }) => index !== anime.index);
+                    const nextAnime = pickRandomItem(availableAnimeList);
 
-                        userSession.isDesciptionShown = false;
-                        userSession.anime = nextAnime;
-                        userSession.sessionStart = Date.now();
-
+                    if (!nextAnime) {
+                        sessionStorage[session.session_id] = undefined;
                         return responseToUser(defaultRes, {
-                            text: `Еще из жанра "${genre}" можно посмотреть "${nextAnime.name}". Рассказать подробнее? `
+                            text: `К сожалению, я не нашла у себя другого аниме в жанре "${genre}.\n Простите мою оплошность и давайте начнём с начала."`,
+                            end_session: true,
                         });
                     }
+
+                    userSession.isDesciptionShown = false;
+                    userSession.anime = nextAnime;
+                    userSession.sessionStart = Date.now();
+
+                    return responseToUser(defaultRes, {
+                        text: `Еще из жанра "${genre}" можно посмотреть "${nextAnime.name}".\nРассказать подробнее? `
+                    });
+                }
+
+                if (callToAction.is(commands.ANY_GENRE)) {
+                    sessionStorage[session.session_id] = undefined;
+                    const genre = pickRandomItem(GENRES_LIST);
+                    const availableAnimeList = ANIME_LIST
+                        .filter((a) => a.genres.includes(genre));
+                    const anime = pickRandomItem(availableAnimeList);
+
+                    sessionStorage[session.session_id] = {
+                        isGenreShown: true,
+                        isAnimeShown: true,
+                        genre: genre,
+                        anime: anime,
+                        sessionStart: Date.now(),
+                    };
+
+                    return responseToUser(defaultRes, {
+                        text: `Многие предпочитают жанр "${genre}". Предлагаю Вам посмотреть "${anime.name}".\nРассказать подробнее?`
+                    });
+                }
+
+                if (callToAction.is(command.RANDOM)) {
+                    let availableAnimeList = ANIME_LIST;
+                    if (userSession && userSession.anime) {
+                        availableAnimeList.filter(({ index }) => index !== userSession.anime.index);
+                    }
+
+                    const anime = pickRandomItem(availableAnimeList);
+                    sessionStorage[session.session_id] = {
+                        isAnimeShown: true,
+                        anime: anime,
+                        sessionStart: Date.now(),
+                    };
+
+                    return responseToUser(defaultRes, {
+                        text: `Предлагаю Вам посмотреть "${anime.name}".\nРассказать о нём подробнее?`
+                    });
                 }
             } else {
                 // todo: я ничего не поняла
