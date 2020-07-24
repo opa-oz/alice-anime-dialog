@@ -1,0 +1,2 @@
+- [ ] Session expiration
+- [ ] Custom phrases

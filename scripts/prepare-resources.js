@@ -6,6 +6,7 @@ const chalk = require('chalk');
 
 const ANIME_LIST_PATH = path.join(__dirname, '../resources/raw/anime-list.raw');
 const ANIME_LIST_OUTPUT_PATH = path.join(__dirname, '../resources/anime-list.json');
+const GENRES_OUTPUT_PATH = path.join(__dirname, '../resources/genres.json');
 
 const prefixes = {
     URL: 'url:',
@@ -21,7 +22,7 @@ async function proceed() {
         throw new Error('There is no raw anime file');
     }
 
-    const animeList = await new Promise((resolve, reject) => {
+    let animeList = await new Promise((resolve, reject) => {
         const readInterface = readline.createInterface({
             input: fs.createReadStream(ANIME_LIST_PATH),
         });
@@ -63,7 +64,14 @@ async function proceed() {
             resolve(animes);
         });
     });
+    animeList = animeList.filter(({ name }) => Boolean(name));
 
+    const genresList = new Set();
+    animeList.forEach(({ genres = [] }) => {
+        genres.forEach((g) => genresList.add(g));
+    });
+
+    await fs.outputFile(GENRES_OUTPUT_PATH, JSON.stringify([...genresList].sort()));
     return fs.outputFile(ANIME_LIST_OUTPUT_PATH, JSON.stringify(animeList))
 }
 

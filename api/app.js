@@ -1,13 +1,12 @@
-const chalk = require('chalk');
+import FuzzySearch from 'fuzzy-search';
 
-const { DEFAULT_ANSWER, COMMANDS_INPUT, ANIME_LIST, commands } = require('../src/constants');
+const { DEFAULT_ANSWER, ANIME_LIST, GENRES_LIST, DEFAULT_ENDING, commands } = require('../src/constants');
 
-const pickRandomAnime = () => {
-    return ANIME_LIST[Math.floor(Math.random() * ANIME_LIST.length)]
+const sessionStorage = {};
+
+const pickRandomAnime = (array = ANIME_LIST) => {
+    return array[Math.floor(Math.random() * array.length)]
 };
-
-
-let kek = 0;
 
 const responseToUser = ({ res, version, session }, response) => {
     res.end(JSON.stringify({
@@ -15,8 +14,7 @@ const responseToUser = ({ res, version, session }, response) => {
         session,
         response: {
             end_session: false,
-            // ...(response || {}),
-            text: kek++,
+            ...(response || {}),
         },
     }));
 };
@@ -25,24 +23,155 @@ const defaultAnswer = ({ res, version, session }) => {
     return responseToUser({ res, version, session }, DEFAULT_ANSWER)
 };
 
-module.exports = async (req, res) => {
-    console.log(`I got my ${chalk.red.bold('dialog!')}`);
+const COMMANDS_LIST = [
+    {
+        text: 'да',
+        command: commands.AGREE
+    },
+    {
+        text: 'ага',
+        command: commands.AGREE
+    },
+    {
+        text: 'подробнее',
+        command: commands.AGREE
+    },
+    {
+        text: 'конечно',
+        command: commands.AGREE
+    },
+    {
+        text: 'давай',
+        command: commands.AGREE
+    },
+    {
+        text: 'нет',
+        command: commands.DISAGREE
+    },
+    {
+        text: 'ни',
+        command: commands.DISAGREE
+    },
+    {
+        text: 'хватит',
+        command: commands.DISAGREE
+    },
+    {
+        text: 'стоп',
+        command: commands.DISAGREE
+    },
+    {
+        text: 'ещё',
+        command: commands.MORE,
+    },
+    {
+        text: 'еще',
+        command: commands.MORE,
+    },
+    {
+        text: 'больше',
+        command: commands.MORE,
+    },
+];
 
-    console.log(JSON.stringify(req.body));
+const genreSearcher = new FuzzySearch(GENRES_LIST, [], { sort: true });
+const commandsSearcher = new FuzzySearch(COMMANDS_LIST, ['text'], { sort: true });
+
+module.exports = async (req, res) => {
     const { request, session, version } = req.body || {};
 
+    setTimeout(() => {
+        Object.keys(sessionStorage)
+            .filter(key => Boolean(sessionStorage[key]))
+            .forEach((key) => {
+                if (Math.abs(sessionStorage[key].startTime - Date.now()) >= 50000) {
+                    delete sessionStorage[key];
+                }
+            });
+    }, 10);
+
     const defaultRes = { res, version, session };
+    const userSession = sessionStorage[session.session_id];
 
     if (request) {
         if (request.original_utterance) {
             const orig = request.original_utterance;
-            const command = COMMANDS_INPUT[orig];
+            const command = request.command;
 
-            if (commands.ANIME_RECOMMENDATION.is(command)) {
-                const anime = pickRandomAnime();
+            const [foundGenre] = genreSearcher.search(command);
+            if (foundGenre) {
+                const availableAnimeList = ANIME_LIST.filter((a) => a.genres.includes(foundGenre));
+                const anime = pickRandomAnime(availableAnimeList);
 
-                return responseToUser(defaultRes, { text: anime.name });
+                sessionStorage[session.session_id] = {
+                    isGenreShown: true,
+                    isAnimeShown: true,
+                    genre: foundGenre,
+                    anime: anime,
+                    sessionStart: Date.now(),
+                };
+
+                return responseToUser(defaultRes, {
+                    text: `Жанр "${foundGenre}" сейчас на пике популярности. Могу предложить посмотреть "${anime.name}". Рассказать подробнее? `
+                }); // *жанр*
             }
+
+            const [searchResult] = commandsSearcher.search(orig);
+            console.log('🥔', commandsSearcher.search(orig), orig);
+            let { command: callToAction } = searchResult || {};
+
+            if (callToAction) {
+                if (callToAction.is(commands.AGREE) && userSession) {
+                    if (userSession.isAnimeShown) {
+                        // so, description
+                        userSession.isDesciptionShown = true;
+                        userSession.sessionStart = Date.now();
+
+                        return responseToUser(defaultRes, {
+                            text: userSession.anime.description,
+                            card: {
+                                type: 'BigImage',
+                                image_id: '937455/b6d5e0827e05c96ce052',
+                                title: userSession.anime.name,
+                                description: userSession.anime.description.slice(0, 255),
+                                button: {
+                                    url: userSession.anime.url,
+                                    text: 'Открыть на MAL',
+                                    payload: {},
+                                },
+                            },
+                        });
+                    }
+                }
+
+                if (callToAction.is(commands.DISAGREE) && userSession) {
+                    sessionStorage[session.session_id] = undefined;
+
+                    return responseToUser(defaultRes, { ...DEFAULT_ENDING, end_session: true });
+                }
+
+                if (callToAction.is(commands.MORE) && userSession) {
+                    if (userSession.isDesciptionShown) {
+                        const { genre, anime } = userSession;
+
+                        const availableAnimeList = ANIME_LIST
+                            .filter((a) => a.genres.includes(genre))
+                            .filter(({ index }) => index !== anime.index);
+                        const nextAnime = pickRandomAnime(availableAnimeList);
+
+                        userSession.isDesciptionShown = false;
+                        userSession.anime = nextAnime;
+                        userSession.sessionStart = Date.now();
+
+                        return responseToUser(defaultRes, {
+                            text: `Еще из жанра "${genre}" можно посмотреть "${nextAnime.name}". Рассказать подробнее? `
+                        });
+                    }
+                }
+            } else {
+                // todo: я ничего не поняла
+            }
+
         }
 
         return defaultAnswer(defaultRes);

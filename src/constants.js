@@ -1,26 +1,30 @@
 const Enum = require('enum');
 
 const DEFAULT_ANSWER = {
-    text: 'Привет! Это Аниме-Алиса! Я подскажу тебе самое свежее аниме, либо порекомендую неумирающую классику! Просто скажи "Порекомендуй аниме" и тотчас получишь ответ'
+    text: `
+Я аниме-Алиса! Я помогаю выбирать аниме для просмотра.\n 
+Назовите мне жанр, который Вы предпочитаете, и начнем.\n
+Так же я разбираюсь в классике аниме, а иногда могу посоветовать свежие тайтлы.
+`
+};
+
+const DEFAULT_ENDING = {
+    text: 'Если смогу еще чем-то помочь - только позовите. Бип-бип-буп'
 };
 
 const ANIME_LIST = require('../resources/anime-list');
+const GENRES_LIST = require('../resources/genres');
 
 const commands = new Enum([
-    'ANIME_RECOMMENDATION',
-    'DESCRIPTION',
-    'LINK'
+    'AGREE',
+    'DISAGREE',
+    'MORE',
 ]);
-
-const COMMANDS_INPUT = {
-    'порекомендуй аниме': commands.ANIME_RECOMMENDATION,
-    'подробнее':commands.DESCRIPTION,
-    'открой': commands.LINK
-};
 
 module.exports = {
     DEFAULT_ANSWER,
+    DEFAULT_ENDING,
     ANIME_LIST,
     commands,
-    COMMANDS_INPUT
+    GENRES_LIST,
 };
