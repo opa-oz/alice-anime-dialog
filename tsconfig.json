@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "outDir": "./api/",
+    // "outDir": "./api/",
     // path to output directory
     "sourceMap": true,
     // allow sourcemap support
     "strictNullChecks": true,
     // enable strict null checks as a best practice
-    "module": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true,
     // specify module code generation
     "target": "es5",
+    "lib": [
+      "es2015"
+    ],
     // specify ECMAScript target version
     "allowJs": true,
     // allow a partial TypeScript and JavaScript codebase

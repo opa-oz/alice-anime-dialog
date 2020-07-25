@@ -1,9 +1,13 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Fuse from 'fuse.js';
+import { NowRequest, NowResponse } from '@vercel/node';
 
-import { DEFAULT_ANSWER, DEFAULT_ENDING, Commands, COMMANDS_LIST } from './constants';
-import { Anime, Params, Session, UserSession, Version, Request, Response } from "./types";
+import { Commands, COMMANDS_LIST, phrases } from '../src/constants';
+import { Anime, Params, Session, UserSession, Version, Request, Response } from "../src/types";
+
+import sd from '../src/utils/short-description';
+import pickRandomItem from '../src/utils/pick-random-item';
+import pickRandomPhrase from '../src/utils/pick-random-phrase';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ANIME_LIST: Array<Anime> = require('../resources/anime-list.json');
@@ -11,10 +15,6 @@ const ANIME_LIST: Array<Anime> = require('../resources/anime-list.json');
 const GENRES_LIST: Array<string> = require('../resources/genres.json');
 
 const sessionStorage: { [item: string]: UserSession } = {};
-
-function pickRandomItem<T>(array: Array<T>): T {
-    return array[Math.floor(Math.random() * array.length)]
-}
 
 const responseToUser = ({ res, version, session }: Params, response: Response) => {
     res.end(JSON.stringify({
@@ -28,13 +28,13 @@ const responseToUser = ({ res, version, session }: Params, response: Response) =
 };
 
 const defaultAnswer = ({ res, version, session }: Params) => {
-    return responseToUser({ res, version, session }, DEFAULT_ANSWER)
+    return responseToUser({ res, version, session }, { text: pickRandomPhrase(phrases.DEFAULT) })
 };
 
 const genreSearcher = new Fuse(GENRES_LIST, { shouldSort: true });
 const commandsSearcher = new Fuse(COMMANDS_LIST, { keys: ['text'], shouldSort: true });
 
-module.exports = async (req, res) => {
+export default async (req: NowRequest, res: NowResponse): Promise<void> => {
     const { request, session, version }: { session: Session, version?: Version, request: Request } = req.body || {};
 
     setTimeout(() => {
@@ -55,10 +55,10 @@ module.exports = async (req, res) => {
             const orig = request.original_utterance;
             const command = request.command;
 
-            let [foundGenre] = genreSearcher.search(command);
-            if (foundGenre && foundGenre.item) {
-                foundGenre = foundGenre.item;
-                const availableAnimeList = ANIME_LIST.filter((a) => a.genres.includes(foundGenre));
+            const [foundResult] = genreSearcher.search(command);
+            if (foundResult && foundResult.item) {
+                const foundGenre = foundResult.item;
+                const availableAnimeList = ANIME_LIST.filter((a) => !!a.genres.includes(foundGenre));
                 const anime = pickRandomItem(availableAnimeList);
 
                 sessionStorage[session.session_id] = {
@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
                 };
 
                 return responseToUser(defaultRes, {
-                    text: `Жанр "${foundGenre}" сейчас на пике популярности. Могу предложить посмотреть "${anime.name}".\nРассказать подробнее? `
+                    text: pickRandomPhrase(phrases.GENRE, [foundGenre, anime])
                 });
             }
 
@@ -92,7 +92,7 @@ module.exports = async (req, res) => {
                                 type: 'BigImage',
                                 image_id: '937455/b6d5e0827e05c96ce052',
                                 title: userAnime?.name || '',
-                                description: userAnime?.description.slice(0, 255),
+                                description: sd(userAnime?.description),
                                 button: {
                                     url: userAnime?.url,
                                     text: 'Открыть на MAL',
@@ -109,7 +109,10 @@ module.exports = async (req, res) => {
                         // so, end
                         delete sessionStorage[session.session_id];
 
-                        return responseToUser(defaultRes, { ...DEFAULT_ENDING, end_session: true });
+                        return responseToUser(defaultRes, {
+                            text: pickRandomPhrase(phrases.ENDING),
+                            end_session: true
+                        });
                     }
                     break;
                 }
@@ -119,14 +122,14 @@ module.exports = async (req, res) => {
                         const { genre, anime } = userSession;
 
                         const availableAnimeList = ANIME_LIST
-                            .filter((a) => a.genres.includes(genre as string))
+                            .filter((a) => !!a.genres.includes(genre as string))
                             .filter(({ index }) => index !== anime?.index);
                         const nextAnime = pickRandomItem(availableAnimeList);
 
                         if (!nextAnime) {
                             delete sessionStorage[session.session_id];
                             return responseToUser(defaultRes, {
-                                text: `К сожалению, я не нашла у себя другого аниме в жанре "${genre}.\n Простите мою оплошность и давайте начнём с начала."`,
+                                text: pickRandomPhrase(phrases.NOT_FOUND, [genre]),
                                 end_session: true,
                             });
                         }
@@ -136,29 +139,29 @@ module.exports = async (req, res) => {
                         userSession.lastUpdateTime = Date.now();
 
                         return responseToUser(defaultRes, {
-                            text: `Еще из жанра "${genre}" можно посмотреть "${nextAnime.name}".\nРассказать подробнее? `
+                            text: pickRandomPhrase(phrases.MORE, [genre, nextAnime]),
                         });
                     }
                     break;
                 }
                 case Commands.ANY_GENRE: {
-                    // any genrer you like
+                    // any genre you like
                     delete sessionStorage[session.session_id];
                     const genre = pickRandomItem(GENRES_LIST);
                     const availableAnimeList = ANIME_LIST
-                        .filter((a) => a.genres.includes(genre));
+                        .filter((a) => !!a.genres.includes(genre));
                     const anime = pickRandomItem(availableAnimeList);
 
                     sessionStorage[session.session_id] = {
                         isGenreShown: true,
                         isAnimeShown: true,
-                        genre: genre,
-                        anime: anime,
+                        genre,
+                        anime,
                         lastUpdateTime: Date.now(),
                     };
 
                     return responseToUser(defaultRes, {
-                        text: `Многие предпочитают жанр "${genre}". Предлагаю Вам посмотреть "${anime.name}".\nРассказать подробнее?`
+                        text: pickRandomPhrase(phrases.ANY, [genre, anime]),
                     });
                 }
                 case Commands.RANDOM: {
@@ -171,17 +174,18 @@ module.exports = async (req, res) => {
                     const anime = pickRandomItem(availableAnimeList);
                     sessionStorage[session.session_id] = {
                         isAnimeShown: true,
-                        anime: anime,
+                        anime,
                         lastUpdateTime: Date.now(),
                     };
 
                     return responseToUser(defaultRes, {
-                        text: `Предлагаю Вам посмотреть "${anime.name}".\nРассказать о нём подробнее?`
+                        text: pickRandomPhrase(phrases.RANDOM, [anime])
                     });
                 }
                 default: {
-                    // todo: я ничего не поняла
-                    break;
+                    return responseToUser(defaultRes, {
+                        text: pickRandomPhrase(phrases.ERROR)
+                    });
                 }
             }
         }
