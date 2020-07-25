@@ -104,12 +104,14 @@ export type ImageCard = {
 export type Response = {
     text: string;
     tts?: string;
-    buttons?: Array<{
-        title: string;
-        payload: any;
-        url: string;
-        hide: boolean;
-    }>,
+    buttons?: Array<Button>,
     end_session?: boolean;
     card?: ImageCard | GalleryCard;
 };
+
+export type Button = {
+    title: string;
+    url?: string;
+    payload?: any;
+    hide: boolean;
+}

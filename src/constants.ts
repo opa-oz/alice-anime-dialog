@@ -1,4 +1,4 @@
-import { Anime, Response } from "./types";
+import { Anime } from "./types";
 import pickRandomPhrase from './utils/pick-random-phrase';
 
 export enum Commands {
@@ -6,10 +6,15 @@ export enum Commands {
     DISAGREE,
     MORE,
     ANY_GENRE,
-    RANDOM
+    RANDOM,
+    OPEN,
 }
 
 export const COMMANDS_LIST = [
+    {
+        text: 'Открыть',
+        command: Commands.OPEN,
+    },
     {
         text: 'да',
         command: Commands.AGREE
@@ -148,10 +153,15 @@ export const phrases = {
         (): string => 'Гомэн насай, сенсей, я не справилась. Могу я, в качестве извинений, порекомендовать случайное аниме?',
     ],
     RANDOM: [
-        (anime:Anime):string => `Предлагаю Вам посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime:Anime):string => `Рекомендую "${anime.name}". Оно крутое!.\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime:Anime):string => `Как насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime:Anime):string => `Что насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime:Anime):string => `Смотрели "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): string => `Предлагаю Вам посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): string => `Рекомендую "${anime.name}". Оно крутое!.\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): string => `Как насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): string => `Что насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): string => `Смотрели "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+    ],
+    OPEN: [
+        (): string => 'Отличный выбор!',
+        (): string => 'Посмотрите и возвращайесь ко мне!',
+        (): string => 'Сиюминутно',
     ],
 };

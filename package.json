@@ -11,7 +11,7 @@
     "start": "micro",
     "build": "chmod +x ./build-script.sh && ./build-script.sh",
     "lint": "eslint . --ext .ts",
-    "deploy": "npm run build && node ./scripts/prepare-resources.js && webpack"
+    "deploy": "npm run build && node ./scripts/prepare-resources.js"
   },
   "dependencies": {
     "fs-extra": "^9.0.1",

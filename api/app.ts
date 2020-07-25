@@ -8,6 +8,7 @@ import { Anime, Params, Session, UserSession, Version, Request, Response } from 
 import sd from '../src/utils/short-description';
 import pickRandomItem from '../src/utils/pick-random-item';
 import pickRandomPhrase from '../src/utils/pick-random-phrase';
+import buildButtons from '../src/utils/build-buttons';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ANIME_LIST: Array<Anime> = require('../resources/anime-list.json');
@@ -28,7 +29,14 @@ const responseToUser = ({ res, version, session }: Params, response: Response) =
 };
 
 const defaultAnswer = ({ res, version, session }: Params) => {
-    return responseToUser({ res, version, session }, { text: pickRandomPhrase(phrases.DEFAULT) })
+    return responseToUser({ res, version, session }, {
+        text: pickRandomPhrase(phrases.DEFAULT),
+        buttons: buildButtons([
+            'Что посмотреть?',
+            'Любой жанр',
+            'Порекомендуй аниме',
+        ])
+    })
 };
 
 const genreSearcher = new Fuse(GENRES_LIST, { shouldSort: true });
@@ -50,6 +58,46 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
     const defaultRes = { res, version, session } as Params;
     const userSession = sessionStorage[session?.session_id];
 
+    const endWithError = () => {
+        delete sessionStorage[session.session_id];
+
+        return responseToUser(defaultRes, {
+            text: pickRandomPhrase(phrases.ERROR),
+            buttons: buildButtons([
+                'Что посмотреть?',
+                'Любой жанр',
+                'Порекомендуй аниме',
+            ])
+        });
+    }
+
+    const endWithRandom = () => {
+        let availableAnimeList = ANIME_LIST;
+        if (userSession && userSession.anime) {
+            availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
+        }
+
+        const anime = pickRandomItem(availableAnimeList);
+        sessionStorage[session.session_id] = {
+            isAnimeShown: true,
+            anime,
+            lastUpdateTime: Date.now(),
+        };
+
+        return responseToUser(defaultRes, {
+            text: pickRandomPhrase(phrases.RANDOM, [anime]),
+            buttons: buildButtons([
+                {
+                    title: 'Открыть MAL',
+                    url: anime.url
+                },
+                'Расскажи больше',
+                'Любой жанр',
+                'Порекомендуй следующее аниме'
+            ])
+        });
+    }
+
     if (request) {
         if (request.original_utterance) {
             const orig = request.original_utterance;
@@ -70,7 +118,18 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                 };
 
                 return responseToUser(defaultRes, {
-                    text: pickRandomPhrase(phrases.GENRE, [foundGenre, anime])
+                    text: pickRandomPhrase(phrases.GENRE, [foundGenre, anime]),
+                    buttons: buildButtons([
+                        {
+                            title: 'Открыть MAL',
+                            url: anime.url
+                        },
+                        'Да',
+                        'Нет',
+                        'Подробнее',
+                        'Любой жанр',
+                        'Случайное аниме'
+                    ])
                 });
             }
 
@@ -99,6 +158,12 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                                     payload: {},
                                 },
                             },
+                            buttons: buildButtons([
+                                'Покажи ещё',
+                                'Любой жанр',
+                                'Случайное аниме',
+                                'Хватит'
+                            ])
                         });
                     }
 
@@ -111,7 +176,11 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
 
                         return responseToUser(defaultRes, {
                             text: pickRandomPhrase(phrases.ENDING),
-                            end_session: true
+                            end_session: true,
+                            buttons: buildButtons([
+                                'Любой жанр',
+                                'Порекомендуй аниме',
+                            ])
                         });
                     }
                     break;
@@ -120,6 +189,10 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                     if (userSession) {
                         // so, another anime in the same genre
                         const { genre, anime } = userSession;
+
+                        if (!genre) {
+                            return endWithRandom();
+                        }
 
                         const availableAnimeList = ANIME_LIST
                             .filter((a) => !!a.genres.includes(genre as string))
@@ -140,6 +213,17 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
 
                         return responseToUser(defaultRes, {
                             text: pickRandomPhrase(phrases.MORE, [genre, nextAnime]),
+                            buttons: buildButtons([
+                                {
+                                    title: 'Открыть MAL',
+                                    url: nextAnime.url
+                                },
+                                'Расскажи подробнее',
+                                'Нет',
+                                'Другой жанр',
+                                'Любой жанр',
+                                'Что посмотреть?'
+                            ])
                         });
                     }
                     break;
@@ -162,30 +246,40 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
 
                     return responseToUser(defaultRes, {
                         text: pickRandomPhrase(phrases.ANY, [genre, anime]),
+                        buttons: buildButtons([
+                            {
+                                title: 'Открыть MAL',
+                                url: anime.url
+                            },
+                            'Расскажи больше',
+                            'Другой жанр',
+                            'Порекомендуй аниме'
+                        ])
                     });
                 }
                 case Commands.RANDOM: {
                     // random anime
-                    let availableAnimeList = ANIME_LIST;
+                    return endWithRandom();
+                }
+                case Commands.OPEN: {
                     if (userSession && userSession.anime) {
-                        availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
+                        delete sessionStorage[session.session_id];
+
+                        return responseToUser(defaultRes, {
+                            text: pickRandomPhrase(phrases.OPEN),
+                            buttons: buildButtons([
+                                'Что посмотреть?',
+                                'Любой жанр',
+                                'Порекомендуй аниме',
+                            ]),
+                            end_session: true,
+                        });
                     }
 
-                    const anime = pickRandomItem(availableAnimeList);
-                    sessionStorage[session.session_id] = {
-                        isAnimeShown: true,
-                        anime,
-                        lastUpdateTime: Date.now(),
-                    };
-
-                    return responseToUser(defaultRes, {
-                        text: pickRandomPhrase(phrases.RANDOM, [anime])
-                    });
+                    return endWithError();
                 }
                 default: {
-                    return responseToUser(defaultRes, {
-                        text: pickRandomPhrase(phrases.ERROR)
-                    });
+                    return endWithError();
                 }
             }
         }
