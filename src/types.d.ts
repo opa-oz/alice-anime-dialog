@@ -2,6 +2,9 @@ export type Anime = {
     index: number;
     url: string;
     name: string;
+    image?: string;
+    image_id?: string;
+    fullName: string;
     genres: Array<string>;
     description: string;
 }
@@ -114,4 +117,9 @@ export type Button = {
     url?: string;
     payload?: any;
     hide: boolean;
+}
+
+export type TTSPhrase = {
+    text: string;
+    tts: string;
 }

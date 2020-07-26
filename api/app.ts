@@ -3,7 +3,7 @@ import Fuse from 'fuse.js';
 import { NowRequest, NowResponse } from '@vercel/node';
 
 import { Commands, COMMANDS_LIST, phrases } from '../src/constants';
-import { Anime, Params, Session, UserSession, Version, Request, Response } from "../src/types";
+import { Anime, Params, Session, UserSession, Version, Request, Response, TTSPhrase } from "../src/types";
 
 import sd from '../src/utils/short-description';
 import pickRandomItem from '../src/utils/pick-random-item';
@@ -24,15 +24,19 @@ const responseToUser = ({ res, version, session }: Params, response: Response) =
         response: {
             end_session: false,
             ...(response || {}),
+            text: sd(response.text, 1024),
+            tts: response.tts ? sd(response.tts, 1024) : undefined,
         },
     }));
 };
 
 const defaultAnswer = ({ res, version, session }: Params) => {
     return responseToUser({ res, version, session }, {
-        text: pickRandomPhrase(phrases.DEFAULT),
+        text: pickRandomPhrase(phrases.DEFAULT) as string,
         buttons: buildButtons([
             'Что посмотреть?',
+            pickRandomItem(GENRES_LIST),
+            pickRandomItem(GENRES_LIST),
             'Любой жанр',
             'Порекомендуй аниме',
         ])
@@ -62,9 +66,10 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
         delete sessionStorage[session.session_id];
 
         return responseToUser(defaultRes, {
-            text: pickRandomPhrase(phrases.ERROR),
+            text: pickRandomPhrase(phrases.ERROR) as string,
             buttons: buildButtons([
                 'Что посмотреть?',
+                pickRandomItem(GENRES_LIST),
                 'Любой жанр',
                 'Порекомендуй аниме',
             ])
@@ -85,13 +90,14 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
         };
 
         return responseToUser(defaultRes, {
-            text: pickRandomPhrase(phrases.RANDOM, [anime]),
+            ...(pickRandomPhrase(phrases.RANDOM, [anime]) as TTSPhrase),
             buttons: buildButtons([
                 {
-                    title: 'Открыть MAL',
+                    title: 'Открыть Шикимори',
                     url: anime.url
                 },
                 'Расскажи больше',
+                pickRandomItem(GENRES_LIST),
                 'Любой жанр',
                 'Порекомендуй следующее аниме'
             ])
@@ -102,36 +108,6 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
         if (request.original_utterance) {
             const orig = request.original_utterance;
             const command = request.command;
-
-            const [foundResult] = genreSearcher.search(command);
-            if (foundResult && foundResult.item) {
-                const foundGenre = foundResult.item;
-                const availableAnimeList = ANIME_LIST.filter((a) => !!a.genres.includes(foundGenre));
-                const anime = pickRandomItem(availableAnimeList);
-
-                sessionStorage[session.session_id] = {
-                    isGenreShown: true,
-                    isAnimeShown: true,
-                    genre: foundGenre,
-                    lastUpdateTime: Date.now(),
-                    anime,
-                };
-
-                return responseToUser(defaultRes, {
-                    text: pickRandomPhrase(phrases.GENRE, [foundGenre, anime]),
-                    buttons: buildButtons([
-                        {
-                            title: 'Открыть MAL',
-                            url: anime.url
-                        },
-                        'Да',
-                        'Нет',
-                        'Подробнее',
-                        'Любой жанр',
-                        'Случайное аниме'
-                    ])
-                });
-            }
 
             const [searchResult] = commandsSearcher.search(orig);
             const { item } = searchResult || {};
@@ -149,12 +125,12 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                             text: userAnime?.description || '',
                             card: {
                                 type: 'BigImage',
-                                image_id: '937455/b6d5e0827e05c96ce052',
+                                image_id: userAnime?.image_id || '',
                                 title: userAnime?.name || '',
                                 description: sd(userAnime?.description),
                                 button: {
                                     url: userAnime?.url,
-                                    text: 'Открыть на MAL',
+                                    text: 'Открыть на Шикимори',
                                     payload: {},
                                 },
                             },
@@ -175,7 +151,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         delete sessionStorage[session.session_id];
 
                         return responseToUser(defaultRes, {
-                            text: pickRandomPhrase(phrases.ENDING),
+                            text: pickRandomPhrase(phrases.ENDING) as string,
                             end_session: true,
                             buttons: buildButtons([
                                 'Любой жанр',
@@ -202,7 +178,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         if (!nextAnime) {
                             delete sessionStorage[session.session_id];
                             return responseToUser(defaultRes, {
-                                text: pickRandomPhrase(phrases.NOT_FOUND, [genre]),
+                                text: pickRandomPhrase(phrases.NOT_FOUND, [genre]) as string,
                                 end_session: true,
                             });
                         }
@@ -212,10 +188,10 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         userSession.lastUpdateTime = Date.now();
 
                         return responseToUser(defaultRes, {
-                            text: pickRandomPhrase(phrases.MORE, [genre, nextAnime]),
+                            ...(pickRandomPhrase(phrases.MORE, [genre, nextAnime]) as TTSPhrase),
                             buttons: buildButtons([
                                 {
-                                    title: 'Открыть MAL',
+                                    title: 'Открыть Шикимори',
                                     url: nextAnime.url
                                 },
                                 'Расскажи подробнее',
@@ -245,13 +221,14 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                     };
 
                     return responseToUser(defaultRes, {
-                        text: pickRandomPhrase(phrases.ANY, [genre, anime]),
+                        ...(pickRandomPhrase(phrases.ANY, [genre, anime]) as TTSPhrase),
                         buttons: buildButtons([
                             {
-                                title: 'Открыть MAL',
+                                title: 'Открыть Шикимори',
                                 url: anime.url
                             },
                             'Расскажи больше',
+                            pickRandomItem(GENRES_LIST),
                             'Другой жанр',
                             'Порекомендуй аниме'
                         ])
@@ -266,22 +243,53 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         delete sessionStorage[session.session_id];
 
                         return responseToUser(defaultRes, {
-                            text: pickRandomPhrase(phrases.OPEN),
+                            text: pickRandomPhrase(phrases.OPEN) as string,
                             buttons: buildButtons([
                                 'Что посмотреть?',
                                 'Любой жанр',
                                 'Порекомендуй аниме',
                             ]),
-                            end_session: true,
                         });
                     }
 
                     return endWithError();
                 }
                 default: {
-                    return endWithError();
+                    break;
                 }
             }
+
+            const [foundResult] = genreSearcher.search(command);
+            if (foundResult && foundResult.item) {
+                const foundGenre = foundResult.item;
+                const availableAnimeList = ANIME_LIST.filter((a) => !!a.genres.includes(foundGenre));
+                const anime = pickRandomItem(availableAnimeList);
+
+                sessionStorage[session.session_id] = {
+                    isGenreShown: true,
+                    isAnimeShown: true,
+                    genre: foundGenre,
+                    lastUpdateTime: Date.now(),
+                    anime,
+                };
+
+                return responseToUser(defaultRes, {
+                    ...(pickRandomPhrase(phrases.GENRE, [foundGenre, anime]) as TTSPhrase),
+                    buttons: buildButtons([
+                        {
+                            title: 'Открыть Шикимори',
+                            url: anime.url
+                        },
+                        'Давай',
+                        'Нет',
+                        'Подробнее',
+                        'Любой жанр',
+                        'Случайное аниме'
+                    ])
+                });
+            }
+
+            return endWithError();
         }
 
         return defaultAnswer(defaultRes);

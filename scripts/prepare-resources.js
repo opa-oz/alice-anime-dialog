@@ -12,7 +12,8 @@ const prefixes = {
     URL: 'url:',
     NAME: 'name:',
     GENRES: 'genres:',
-    DESCRIPTION: 'description:'
+    DESCRIPTION: 'description:',
+    IMAGE: 'image:',
 };
 
 async function proceed() {
@@ -46,9 +47,13 @@ async function proceed() {
             if (line.startsWith(prefixes.URL)) {
                 anime.url = line.replace(prefixes.URL, '').trim();
             } else if (line.startsWith(prefixes.NAME)) {
-                anime.name = line.replace(prefixes.NAME, '').trim();
+                const name = line.replace(prefixes.NAME, '').trim();
+                anime.fullName = name;
+                anime.name = name.split(' / ')[0];
             } else if (line.startsWith(prefixes.GENRES)) {
                 anime.genres = line.replace(prefixes.GENRES, '').trim().split(',');
+            } else if (line.startsWith(prefixes.IMAGE)) {
+                anime.image = line.replace(prefixes.IMAGE, '').trim();
             } else if (line.startsWith(prefixes.DESCRIPTION)) {
                 anime.description = line.replace(prefixes.DESCRIPTION, '').replace(/"/g, '').trim();
             }

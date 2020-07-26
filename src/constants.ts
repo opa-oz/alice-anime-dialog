@@ -1,4 +1,4 @@
-import { Anime } from "./types";
+import { Anime, TTSPhrase } from "./types";
 import pickRandomPhrase from './utils/pick-random-phrase';
 
 export enum Commands {
@@ -16,15 +16,7 @@ export const COMMANDS_LIST = [
         command: Commands.OPEN,
     },
     {
-        text: 'да',
-        command: Commands.AGREE
-    },
-    {
         text: 'расскажи',
-        command: Commands.AGREE
-    },
-    {
-        text: 'ага',
         command: Commands.AGREE
     },
     {
@@ -110,11 +102,46 @@ export const phrases = {
         (): string => 'Могу рассказать о нём подробнее. Хотите?',
     ],
     GENRE: [
-        (genre: string, anime: Anime): string => `Жанр "${genre}" сейчас на пике популярности. Могу предложить посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `Мне тоже нравится "${genre}". Особенно аниме "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `"${genre}" - отличный выбор! Рекомендую посмотреть "${anime.name}".`,
-        (genre: string, anime: Anime): string => `"${genre}"? А у Вас хороший вкус. Как насчёт посмотреть "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `Ммм, "${genre}"... Дайте подумать... Как Вам "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Жанр "${genre}" сейчас на пике популярности. Могу предложить посмотреть "${name}".\n${ending}`
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Мне тоже нравится "${genre}". Особенно аниме "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => ({
+            text: `"${genre}" - отличный выбор! Рекомендую посмотреть "${anime.fullName}".`,
+            tts: `"${genre}" - отличный выбор! Рекомендую посмотреть "${anime.name}".`
+        }),
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `"${genre}"? А у Вас хороший вкус. Как насчёт посмотреть "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Ммм, "${genre}"... Дайте подумать... Как Вам "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
     ],
     ENDING: [
         (): string => 'Если смогу еще чем-то помочь - только позовите. Бип-бип-буп',
@@ -129,16 +156,80 @@ export const phrases = {
         (genre: string): string => `Программист Алексей очень извиняется, что не добавил больше аниме в жанр "${genre}". Могу порекомендовать любое другое аниме, например.`,
     ],
     MORE: [
-        (genre: string, nextAnime: Anime): string => `Жанр "${genre}" отлично представлен в аниме "${nextAnime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, nextAnime: Anime): string => `Любители жанра "${genre}" часто смотрят "${nextAnime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, nextAnime: Anime): string => `Хммм, что же ещё можно предложить в жанре "${genre}"... Может "${nextAnime.name}?\n${pickRandomPhrase(phrases.NEED_MORE)}"`,
-        (genre: string, nextAnime: Anime): string => `Еще из жанра "${genre}" можно посмотреть "${nextAnime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (genre: string, nextAnime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Жанр "${genre}" отлично представлен в аниме "${name}".\n${ending}`;
+
+            return {
+                text: text(nextAnime.fullName),
+                tts: text(nextAnime.name),
+            }
+        },
+        (genre: string, nextAnime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Любители жанра "${genre}" часто смотрят "${name}".\n${ending}`;
+
+            return {
+                text: text(nextAnime.fullName),
+                tts: text(nextAnime.name),
+            }
+        },
+        (genre: string, nextAnime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Хммм, что же ещё можно предложить в жанре "${genre}"... Может "${name}?\n${ending}"`;
+
+            return {
+                text: text(nextAnime.fullName),
+                tts: text(nextAnime.name),
+            }
+        },
+        (genre: string, nextAnime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Еще из жанра "${genre}" можно посмотреть "${name}".\n${ending}`;
+
+            return {
+                text: text(nextAnime.fullName),
+                tts: text(nextAnime.name),
+            }
+        },
     ],
     ANY: [
-        (genre: string, anime: Anime): string => `Любите жанр "${genre}"? Я вот да! Особенно "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `"${genre}" любят все! Рекомендую посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `"${genre}"? Сложный выбор... Как насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (genre: string, anime: Anime): string => `Многие предпочитают жанр "${genre}". Предлагаю Вам посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Любите жанр "${genre}"? Я вот да! Особенно "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `"${genre}" любят все! Рекомендую посмотреть "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `"${genre}"? Сложный выбор... Как насчёт "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (genre: string, anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Многие предпочитают жанр "${genre}". Предлагаю Вам посмотреть "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        }
     ],
     DEFAULT: [
         (): string => 'Я аниме-Алиса! Я помогаю выбирать аниме для просмотра.\nНазовите мне жанр, который Вы предпочитаете, и начнем.\nТак же я разбираюсь в классике аниме, а иногда могу посоветовать свежие тайтлы.',
@@ -153,11 +244,51 @@ export const phrases = {
         (): string => 'Гомэн насай, сенсей, я не справилась. Могу я, в качестве извинений, порекомендовать случайное аниме?',
     ],
     RANDOM: [
-        (anime: Anime): string => `Предлагаю Вам посмотреть "${anime.name}".\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime: Anime): string => `Рекомендую "${anime.name}". Оно крутое!.\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime: Anime): string => `Как насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime: Anime): string => `Что насчёт "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
-        (anime: Anime): string => `Смотрели "${anime.name}"?\n${pickRandomPhrase(phrases.NEED_MORE)}`,
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Предлагаю Вам посмотреть "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Рекомендую "${name}". Оно крутое!.\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Как насчёт "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Что насчёт "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Смотрели "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
     ],
     OPEN: [
         (): string => 'Отличный выбор!',

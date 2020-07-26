@@ -3,7 +3,7 @@ const ENDING_LENGTH = 3;
 
 const ENDING = '...';
 
-export default (description?: string): string => {
+export default (description?: string, maxLength: number = MAX_LENGTH): string => {
     if (!description) {
         return '';
     }
@@ -11,8 +11,8 @@ export default (description?: string): string => {
     const { length } = description;
     let result = '';
 
-    if (length >= MAX_LENGTH) {
-        result = `${description.slice(0, MAX_LENGTH - ENDING_LENGTH)}${ENDING}`
+    if (length >= maxLength) {
+        result = `${description.slice(0, maxLength - ENDING_LENGTH)}${ENDING}`
     } else {
         result = description;
     }
