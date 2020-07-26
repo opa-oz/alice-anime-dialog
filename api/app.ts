@@ -114,6 +114,17 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
             const { command: callToAction } = item || {};
 
             switch (callToAction) {
+                case Commands.HELP: {
+                    return responseToUser(defaultRes, {
+                        text: pickRandomPhrase(phrases.HELP) as string,
+                        buttons: buildButtons([
+                            'Приключения',
+                            'Случайное аниме',
+                            pickRandomItem(GENRES_LIST),
+                            'Любой жанр',
+                        ])
+                    })
+                }
                 case Commands.AGREE: {
                     if (userSession && userSession.isAnimeShown) {
                         // so, description
