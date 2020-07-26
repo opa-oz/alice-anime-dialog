@@ -1,4 +1,4 @@
-- [ ] Session expiration
+- [x] Session expiration
 - [x] Custom phrases
 - [x] Buttons generation
-- [ ] Text-To-Speech
+- [x] Text-To-Speech
