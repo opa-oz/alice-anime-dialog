@@ -94,7 +94,8 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
             buttons: buildButtons([
                 {
                     title: 'Открыть Шикимори',
-                    url: anime.url
+                    url: anime.url,
+                    hide: true,
                 },
                 'Расскажи больше',
                 pickRandomItem(GENRES_LIST),

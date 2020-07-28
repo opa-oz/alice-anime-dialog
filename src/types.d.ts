@@ -116,7 +116,7 @@ export type Button = {
     title: string;
     url?: string;
     payload?: any;
-    hide: boolean;
+    hide?: boolean;
 }
 
 export type TTSPhrase = {

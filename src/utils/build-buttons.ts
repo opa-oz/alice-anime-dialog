@@ -1,7 +1,7 @@
 import { Button } from "../types";
 
-export default (rawButtons: Array<string | { title: string, url: string }>): Array<Button> => {
-    const preparedButtons: Array<{ title: string, url?: string }> = rawButtons.map((raw) => {
+export default (rawButtons: Array<string | { title: string, url: string, hide?: boolean; }>): Array<Button> => {
+    const preparedButtons: Array<{ title: string, url?: string, hide?: boolean, }> = rawButtons.map((raw) => {
         if (typeof raw === 'string') {
             return { title: raw };
         }
@@ -12,6 +12,6 @@ export default (rawButtons: Array<string | { title: string, url: string }>): Arr
     return preparedButtons.map((button) => ({
         title: button.title,
         url: button.url,
-        hide: false,
+        hide: button.hide || false,
     }));
 }
