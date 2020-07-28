@@ -95,7 +95,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                 {
                     title: 'Открыть Шикимори',
                     url: anime.url,
-                    hide: true,
+                    hide: false,
                 },
                 'Расскажи больше',
                 pickRandomItem(GENRES_LIST),
@@ -204,7 +204,8 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                             buttons: buildButtons([
                                 {
                                     title: 'Открыть Шикимори',
-                                    url: nextAnime.url
+                                    url: nextAnime.url,
+                                    hide: false,
                                 },
                                 'Расскажи подробнее',
                                 'Нет',
@@ -237,7 +238,8 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         buttons: buildButtons([
                             {
                                 title: 'Открыть Шикимори',
-                                url: anime.url
+                                url: anime.url,
+                                hide: false,
                             },
                             'Расскажи больше',
                             pickRandomItem(GENRES_LIST),
@@ -290,7 +292,8 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                     buttons: buildButtons([
                         {
                             title: 'Открыть Шикимори',
-                            url: anime.url
+                            url: anime.url,
+                            hide: false,
                         },
                         'Давай',
                         'Нет',

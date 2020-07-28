@@ -12,6 +12,6 @@ export default (rawButtons: Array<string | { title: string, url: string, hide?: 
     return preparedButtons.map((button) => ({
         title: button.title,
         url: button.url,
-        hide: button.hide || false,
+        hide: typeof button.hide === 'boolean' ? button.hide : true,
     }));
 }
