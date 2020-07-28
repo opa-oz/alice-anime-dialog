@@ -6,6 +6,8 @@
 
 <h4 align="center">Рекомендации аниме | Диалог для Яндекс Алисы</h4>
 <p align="center">
+  <a href="https://dialogs.yandex.ru/store/skills/c6bd0716-guru-anime-rekomendacij?utm_source=site&utm_medium=badge&utm_campaign=v1&utm_term=d1" target="_blank"><img alt="Алиса это умеет" src="https://dialogs.s3.yandex.net/badges/v1-term1.svg"/></a>
+  <br/>
 <img src="https://badgen.net/badge/license/MIT/blue" alt="license-mit" data-canonical-src="https://badgen.net/badge/license/MIT/blue" style="max-width:100%;">
 </p>
 
