@@ -1,6 +1,6 @@
 {
   "name": "alice-anime-dialog",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Dialog for Yandex.Alice",
   "main": "src/app.ts",
   "repository": "https://github.com/opa-oz/alice-anime-dialog.git",
