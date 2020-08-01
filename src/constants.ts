@@ -309,3 +309,9 @@ export const phrases = {
         (): string => 'Я аниме-Алиса! Я помогаю выбирать аниме для просмотра.\nНазовите мне жанр, который Вы предпочитаете, и начнем.\nТак же я разбираюсь в классике аниме, а иногда могу посоветовать свежие тайтлы.',
     ]
 };
+
+export const LOG_TYPES = {
+    request: 'user_input',
+    response: 'answer_to_user',
+    error: 'recognizing_error'
+};

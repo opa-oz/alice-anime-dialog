@@ -20,9 +20,12 @@
     "fs-extra": "^9.0.1",
     "fuse.js": "^6.4.0",
     "global": "^4.4.0",
+    "pino": "^6.4.1",
+    "pino-logflare": "^0.3.5",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
-    "standard-version": "^8.0.2"
+    "standard-version": "^8.0.2",
+    "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@types/fuse": "^2.6.0",

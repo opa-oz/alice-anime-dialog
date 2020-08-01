@@ -39,6 +39,7 @@ export type Params = {
     session: Session;
     res: any;
     version: Version;
+    logId: string;
 }
 
 type Entity = {

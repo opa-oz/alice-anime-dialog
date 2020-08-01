@@ -1,8 +1,11 @@
 // @ts-ignore
 import Fuse from 'fuse.js';
 import { NowRequest, NowResponse } from '@vercel/node';
+import { v4 as uuidv4 } from 'uuid';
+import pino from 'pino'
+import { logflarePinoVercel } from 'pino-logflare'
 
-import { Commands, COMMANDS_LIST, phrases } from '../src/constants';
+import { Commands, COMMANDS_LIST, LOG_TYPES, phrases } from '../src/constants';
 import { Anime, Params, Session, UserSession, Version, Request, Response, TTSPhrase } from "../src/types";
 
 import sd from '../src/utils/short-description';
@@ -17,7 +20,29 @@ const GENRES_LIST: Array<string> = require('../resources/genres.json');
 
 const sessionStorage: { [item: string]: UserSession } = {};
 
-const responseToUser = ({ res, version, session }: Params, response: Response) => {
+// create pino-logflare console stream for serverless functions and send function for browser logs
+const { stream } = logflarePinoVercel({
+    apiKey: process.env.LOGFLARE_API_KEY || 'LOGFLARE_API_KEY not set',
+    sourceToken: process.env.LOGLFARE_SOURCE_TOKEN || 'LOGLFARE_SOURCE_TOKEN not set',
+});
+
+// create pino loggger
+const logger = pino({
+    level: "debug",
+    base: {
+        env: process.env.ENV || "ENV not set",
+        revision: process.env.VERCEL_GITHUB_COMMIT_SHA,
+    },
+}, stream);
+
+const responseToUser = ({ res, version, session, logId }: Params, response: Response) => {
+    logger.debug({
+        type: LOG_TYPES.response,
+        payload: response,
+        customer_id: session && session.session_id,
+        log_id: logId,
+    });
+
     res.end(JSON.stringify({
         version,
         session,
@@ -30,8 +55,8 @@ const responseToUser = ({ res, version, session }: Params, response: Response) =
     }));
 };
 
-const defaultAnswer = ({ res, version, session }: Params) => {
-    return responseToUser({ res, version, session }, {
+const defaultAnswer = ({ res, version, session, logId }: Params) => {
+    return responseToUser({ res, version, session, logId }, {
         text: pickRandomPhrase(phrases.DEFAULT) as string,
         buttons: buildButtons([
             'Что посмотреть?',
@@ -59,11 +84,18 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
             });
     }, 10);
 
-    const defaultRes = { res, version, session } as Params;
+    const defaultRes = { res, version, session, logId: uuidv4() } as Params;
     const userSession = sessionStorage[session?.session_id];
 
-    const endWithError = () => {
+    const endWithError = (orig?: string) => {
         delete sessionStorage[session.session_id];
+
+        logger.debug({
+            customer_id: session && session.session_id,
+            type: LOG_TYPES.error,
+            orig,
+            log_id: defaultRes.logId,
+        });
 
         return responseToUser(defaultRes, {
             text: pickRandomPhrase(phrases.ERROR) as string,
@@ -113,6 +145,15 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
             const [searchResult] = commandsSearcher.search(orig);
             const { item } = searchResult || {};
             const { command: callToAction } = item || {};
+
+            logger.debug({
+                type: LOG_TYPES.request,
+                orig,
+                command,
+                callToAction,
+                customer_id: session && session.session_id,
+                log_id: defaultRes.logId,
+            });
 
             switch (callToAction) {
                 case Commands.HELP: {
@@ -266,7 +307,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                         });
                     }
 
-                    return endWithError();
+                    return endWithError(orig);
                 }
                 default: {
                     break;
@@ -304,7 +345,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                 });
             }
 
-            return endWithError();
+            return endWithError(orig);
         }
 
         return defaultAnswer(defaultRes);
