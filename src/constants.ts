@@ -315,3 +315,5 @@ export const LOG_TYPES = {
     response: 'answer_to_user',
     error: 'recognizing_error'
 };
+
+export const PING_COMMAND = 'ping';

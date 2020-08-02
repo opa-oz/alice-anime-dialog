@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import pino from 'pino'
 import { logflarePinoVercel } from 'pino-logflare'
 
-import { Commands, COMMANDS_LIST, LOG_TYPES, phrases } from '../src/constants';
+import { Commands, COMMANDS_LIST, LOG_TYPES, phrases, PING_COMMAND } from '../src/constants';
 import { Anime, Params, Session, UserSession, Version, Request, Response, TTSPhrase } from "../src/types";
 
 import sd from '../src/utils/short-description';
@@ -35,13 +35,15 @@ const logger = pino({
     },
 }, stream);
 
-const responseToUser = ({ res, version, session, logId }: Params, response: Response) => {
-    logger.debug({
-        type: LOG_TYPES.response,
-        payload: response,
-        customer_id: session && session.session_id,
-        log_id: logId,
-    });
+const responseToUser = ({ res, version, session, logId }: Params, response: Response, logless: boolean = false) => {
+    if (!logless) {
+        logger.debug({
+            type: LOG_TYPES.response,
+            payload: response,
+            customer_id: session && session.session_id,
+            log_id: logId,
+        });
+    }
 
     res.end(JSON.stringify({
         version,
@@ -90,12 +92,14 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
     const endWithError = (orig?: string) => {
         delete sessionStorage[session.session_id];
 
-        logger.debug({
-            customer_id: session && session.session_id,
-            type: LOG_TYPES.error,
-            orig,
-            log_id: defaultRes.logId,
-        });
+        if (orig !== PING_COMMAND) {
+            logger.debug({
+                customer_id: session && session.session_id,
+                type: LOG_TYPES.error,
+                orig,
+                log_id: defaultRes.logId,
+            });
+        }
 
         return responseToUser(defaultRes, {
             text: pickRandomPhrase(phrases.ERROR) as string,
@@ -105,7 +109,7 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
                 'Любой жанр',
                 'Порекомендуй аниме',
             ])
-        });
+        }, orig === PING_COMMAND);
     }
 
     const endWithRandom = () => {
@@ -145,6 +149,10 @@ export default async (req: NowRequest, res: NowResponse): Promise<void> => {
             const [searchResult] = commandsSearcher.search(orig);
             const { item } = searchResult || {};
             const { command: callToAction } = item || {};
+
+            if (command === PING_COMMAND) {
+                return endWithError(command);
+            }
 
             logger.debug({
                 type: LOG_TYPES.request,
