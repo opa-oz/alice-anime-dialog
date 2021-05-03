@@ -11,9 +11,11 @@ const dailyRotateTransport = new DailyRotateFile({
     frequency: '1d'
 } as DailyRotateFile.DailyRotateFileTransportOptions);
 
+const format = winston.format.combine(winston.format.timestamp(), winston.format.json());
+
 const options = {
     level: isProduction ? 'info' : 'debug',
-    format: winston.format.json(),
+    format,
     defaultMeta: { service: 'alice-anime' },
     transports: [
         dailyRotateTransport
