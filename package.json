@@ -21,7 +21,9 @@
     "fuse.js": "^6.4.0",
     "global": "^4.4.0",
     "standard-version": "^8.0.2",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.0",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.3"
   },
   "devDependencies": {
     "@types/fuse": "^2.6.0",
