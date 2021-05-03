@@ -1,15 +1,15 @@
 {
   "compilerOptions": {
-    // "outDir": "./api/",
+    "outDir": "./build/",
     // path to output directory
-    "sourceMap": true,
+    "sourceMap": false,
     // allow sourcemap support
     "strictNullChecks": true,
     // enable strict null checks as a best practice
     "module": "commonjs",
     "esModuleInterop": true,
     // specify module code generation
-    "target": "es5",
+    "target": "es6",
     "lib": [
       "es2015"
     ],
@@ -21,6 +21,7 @@
     ]
   },
   "include": [
+    "server.ts",
     "./src/",
     "./resources/"
   ]

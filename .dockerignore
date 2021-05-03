@@ -1,0 +1,15 @@
+build
+deploy
+documentation
+logs
+node_modules
+scripts
+.editorconfig
+.env.sample
+.eslintignore
+.eslintrc
+.gitignore
+.nvmrc
+*.md
+LICENSE
+Makefile
