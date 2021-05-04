@@ -34,7 +34,7 @@ dbuild:
 	docker build -t anime-alice .
 
 drun:
-	docker run --mount type=bind,src=$(current_dir)/logs,dst=/app/logs -p 2000:80 anime-alice
+	docker run --mount type=bind,src=$(current_dir)/logs,dst=/app/logs -p 2000:80 -p 2001:443 anime-alice
 
 dclean:
 	docker stop anime-alice && docker rm anime-alice
