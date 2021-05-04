@@ -14,7 +14,8 @@
     "postbuild": "copyfiles ./resources/* .env build",
     "build": "tsc",
     "images": "ts-node scripts/replace-images.ts",
-    "collect": "ts-node ./scripts/collect-from-shikimori.ts"
+    "collect": "ts-node ./scripts/collect-from-shikimori.ts",
+    "fill": "yarn collect && yarn images"
   },
   "dependencies": {
     "async": "^3.2.0",

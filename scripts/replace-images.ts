@@ -6,16 +6,17 @@ import fs from 'fs-extra';
 import path from 'path';
 import fetch from 'node-fetch';
 import { Anime } from "../src/types";
-import { readMeta } from "./utils/meta";
+import { Meta, readMeta } from "./utils/meta";
 import wait from "./utils/wait";
 import formatResponse from "./utils/format-response";
+import cleanDesc from "./utils/clean-desc";
 
 const ENDPOINT = 'https://dialogs.yandex.net/api/v1/';
-const ANIME_LIST_OUTPUT_PATH = path.join(__dirname, '../resources/anime-list-new.json');
+const ANIME_LIST_OUTPUT_PATH = path.join(__dirname, '../resources/anime-list.json');
+const ANIME_ONGOINGS_OUTPUT_PATH = path.join(__dirname, '../resources/ongoing-list.json');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const animeList: Array<Anime> = require('../resources/anime-list.json');
-
 
 type ImageResponse = {
     image?: {
@@ -24,8 +25,8 @@ type ImageResponse = {
     index: number;
 };
 
-async function readNewSet(today: number): Promise<Array<Anime>> {
-    const p = path.join(__dirname, `../resources/collected_${today}.json`);
+async function readNewSet(today: number, meta: Meta): Promise<Array<Anime>> {
+    const p = path.join(__dirname, `../resources/collected_${meta.parseNew ? 'ongoing_' : ''}${today}.json`);
     const exists = await fs.pathExists(p);
 
     if (!exists) {
@@ -47,6 +48,8 @@ function mergeArrays(oldSet: Array<Anime>, newSet: Array<Anime>): Array<Anime> {
         result.push(v);
     });
 
+    console.log(`Old/New/Total - ${chalk.gray(oldNames.length)} / ${chalk.green(uniqueNewSet.length)} / ${chalk.blue(result.length)}`);
+
     return result;
 }
 
@@ -57,8 +60,9 @@ async function proceed() {
         throw new Error('There is no meta');
     }
 
-    const newSet = await readNewSet(meta.lastParserRun);
-    const fullList = mergeArrays(animeList, newSet);
+    const newSet = await readNewSet(meta.lastParserRun, meta);
+    let fullList = mergeArrays(meta.parseNew ? [] : animeList, newSet);
+
     const amount = fullList.reduce((acc, v) => {
         if (v.image_id) {
             return acc;
@@ -108,8 +112,10 @@ async function proceed() {
         original.image_id = id;
     });
 
-    fs.removeSync(path.join(__dirname, `../resources/collected_${meta.lastParsedPage}.json`));
-    return fs.outputFile(ANIME_LIST_OUTPUT_PATH, JSON.stringify(fullList))
+    fullList = cleanDesc(fullList);
+
+    fs.removeSync(path.join(__dirname, `../resources/collected_${meta.parseNew ? 'ongoing_' : ''}${meta.lastParserRun}.json`));
+    return fs.outputFile(meta.parseNew ? ANIME_ONGOINGS_OUTPUT_PATH : ANIME_LIST_OUTPUT_PATH, JSON.stringify(fullList))
 }
 
 proceed()
