@@ -3,7 +3,7 @@ import readline from 'readline';
 import path from 'path';
 
 import chalk from 'chalk';
-import { Anime } from "../src/types";
+import { Anime } from "../../src/types";
 
 const ANIME_LIST_PATH = path.join(__dirname, '../resources/raw/anime-list.raw');
 const ANIME_LIST_OUTPUT_PATH = path.join(__dirname, '../resources/anime-list.json');
