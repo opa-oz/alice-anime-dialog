@@ -9,7 +9,7 @@ import asyncify from 'async/asyncify';
 
 import { Anime } from "../src/types";
 import wait from "./utils/wait";
-import { readMeta, writeMeta } from "./utils/meta";
+import { Meta, readMeta, writeMeta } from "./utils/meta";
 import { AnimeFromShikimori, FullAnime } from "./utils/types";
 import formatResponse from "./utils/format-response";
 
@@ -20,7 +20,7 @@ const PREFIX = 'https://shikimori.one';
 const LIMIT = 50;
 const ITERATIONS = 4;
 const MAX_RPM = 89;
-const MAX_RPS = 5;
+const MAX_RPS = 4;
 const HEADERS = {
     'Content-Type': 'application/json',
     'Authorization': TOKEN,
@@ -30,14 +30,15 @@ const HEADERS = {
 const today = Date.now();
 
 const OUTPUT = path.join(__dirname, `../resources/collected_${today}.json`);
+const OUTPUT_ONGOING = path.join(__dirname, `../resources/collected_ongoing_${today}.json`);
 
 let request = 0;
 let rpmCounter = 0;
 let requestsStart = 0;
 const duration = 1000 * 60; // 1 minute
 
-async function exportToFile(animeList: Array<Anime>): Promise<void> {
-    await fs.writeJson(OUTPUT, animeList);
+async function exportToFile(animeList: Array<Anime>, meta: Meta): Promise<void> {
+    await fs.writeJson(meta.parseNew ? OUTPUT_ONGOING : OUTPUT, animeList);
 }
 
 function formatAnime(fullAnime: FullAnime): Anime {
@@ -97,9 +98,9 @@ async function populateAnimes(animeList: Array<AnimeFromShikimori>, parallel = M
     return result.map(formatAnime) as Array<Anime>;
 }
 
-async function getPage(page = 0) {
+async function getPage(page = 0, ongoing = false) {
     const currentRequest = ++request;
-    const endpoint = `${PREFIX}/api/animes?limit=${LIMIT}&page=${page}&order=popularity`;
+    const endpoint = `${PREFIX}/api/animes?limit=${LIMIT}&page=${page}&order=popularity${ongoing ? '&status=ongoing' : ''}`;
     console.log(`#${chalk.red(currentRequest)} Endpoint page: ${endpoint}`);
     const animesRaw = await fetch(endpoint, {
         method: 'GET',
@@ -112,24 +113,31 @@ async function getPage(page = 0) {
 async function main() {
     const meta = await readMeta(today);
 
+    if (meta.parseNew) {
+        console.log(chalk.bold(`${chalk.red('Warning:')} This is ONGOING run`));
+    }
+
     const result: Array<Anime> = [];
     const worker = (page) => async () => {
         await rpmLimiter();
-        const pageData = await getPage(page);
+        const pageData = await getPage(page, meta.parseNew);
 
         pageData.forEach(v => result.push(v));
 
         return pageData;
     }
 
-    const pages = (new Array(meta.lastParsedPage + ITERATIONS)).fill(null).map((_, key) => asyncify(worker(key + meta.lastParsedPage + 1)))
+    const iterations = meta.parseNew ? 2 : ITERATIONS;
+    const startPage = meta.parseNew ? 0 : meta.lastParsedPage;
+
+    const pages = (new Array(startPage + iterations)).fill(null).map((_, key) => asyncify(worker(key + startPage + 1)))
     await series(pages);
 
-    console.log(`${chalk.blue('Proceed pages')} ${result.length / LIMIT} / ${ITERATIONS}`);
+    console.log(`${chalk.blue('Proceed pages')} ${result.length / LIMIT} / ${iterations}`);
 
-    await exportToFile(result);
+    await exportToFile(result, meta);
     meta.lastParserRun = today;
-    meta.lastParsedPage = meta.lastParsedPage + ITERATIONS;
+    meta.lastParsedPage = meta.lastParsedPage + iterations;
     await writeMeta(meta);
 }
 
