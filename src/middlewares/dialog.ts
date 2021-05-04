@@ -15,6 +15,8 @@ import { Express } from "express";
 const ANIME_LIST: Array<Anime> = require('../../resources/anime-list.json');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const GENRES_LIST: Array<string> = require('../../resources/genres.json');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const ONGOINGS_LIST: Array<Anime> = require('../../resources/ongoing-list.json');
 
 const sessionStorage: { [item: string]: UserSession } = {};
 
@@ -118,7 +120,7 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                 },
                 'Расскажи больше',
                 pickRandomItem(GENRES_LIST),
-                'Любой жанр',
+                'Что сейчас выходит?',
                 'Порекомендуй следующее аниме'
             ])
         });
@@ -155,6 +157,7 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                             'Случайное аниме',
                             pickRandomItem(GENRES_LIST),
                             'Любой жанр',
+                            'Онгоинги'
                         ])
                     })
                 }
@@ -205,10 +208,68 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                     }
                     break;
                 }
+                case Commands.ONGOINGS: {
+                    if (userSession) {
+                        let availableAnimeList = ONGOINGS_LIST;
+                        if (userSession && userSession.anime) {
+                            availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
+                        }
+
+                        const anime = pickRandomItem(availableAnimeList);
+                        sessionStorage[session.session_id] = {
+                            isAnimeShown: true,
+                            askedForOngoing: true,
+                            anime,
+                            lastUpdateTime: Date.now(),
+                        };
+
+                        return responseToUser(defaultRes, {
+                            ...(pickRandomPhrase(phrases.ONGOING, [anime]) as TTSPhrase),
+                            buttons: buildButtons([
+                                {
+                                    title: 'Открыть Шикимори',
+                                    url: anime.url,
+                                    hide: false,
+                                },
+                                'Расскажи больше',
+                                pickRandomItem(GENRES_LIST),
+                                'Любой жанр',
+                                'Ещё'
+                            ])
+                        });
+                    }
+                    break;
+                }
                 case Commands.MORE: {
                     if (userSession) {
                         // so, another anime in the same genre
-                        const { genre, anime } = userSession;
+                        const { genre, anime, askedForOngoing } = userSession;
+
+                        if (askedForOngoing) {
+                            const availableAnimeList = ONGOINGS_LIST
+                                .filter(({ index }) => index !== anime?.index);
+                            const nextAnime = pickRandomItem(availableAnimeList);
+
+                            userSession.isDescriptionShown = false;
+                            userSession.anime = nextAnime;
+                            userSession.lastUpdateTime = Date.now();
+
+                            return responseToUser(defaultRes, {
+                                ...(pickRandomPhrase(phrases.MORE, [genre, nextAnime]) as TTSPhrase),
+                                buttons: buildButtons([
+                                    {
+                                        title: 'Открыть Шикимори',
+                                        url: nextAnime.url,
+                                        hide: false,
+                                    },
+                                    'Расскажи подробнее',
+                                    'Нет',
+                                    'Другой жанр',
+                                    'Любой жанр',
+                                    'Что ещё новенького??'
+                                ])
+                            });
+                        }
 
                         if (!genre) {
                             return endWithRandom();
@@ -292,6 +353,7 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                             text: pickRandomPhrase(phrases.OPEN) as string,
                             buttons: buildButtons([
                                 'Что посмотреть?',
+                                'Что нового в сезоне?',
                                 'Любой жанр',
                                 'Порекомендуй аниме',
                             ]),
