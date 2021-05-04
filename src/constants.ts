@@ -9,6 +9,7 @@ export enum Commands {
     RANDOM,
     OPEN,
     HELP,
+    ONGOINGS
 }
 
 export const COMMANDS_LIST = [
@@ -99,6 +100,42 @@ export const COMMANDS_LIST = [
     {
         text: 'аниме посмотреть',
         command: Commands.RANDOM
+    },
+    {
+        text: 'аниме онгоинги',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'онгоинги',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'свежее',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'новое',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'новенькое',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'новенького',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'сезонное',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'сезон',
+        command: Commands.ONGOINGS
+    },
+    {
+        text: 'сейчас выходит',
+        command: Commands.ONGOINGS
     },
 ];
 
@@ -292,6 +329,53 @@ export const phrases = {
         (anime: Anime): TTSPhrase => {
             const ending = pickRandomPhrase(phrases.NEED_MORE);
             const text = (name) => `Смотрели "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+    ],
+    ONGOING: [
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Предлагаю Вам посмотреть свежее аниме - "${name}".\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Рекомендую "${name}". Оно прямо сейчас выходит! Это же круто!.\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Как насчёт свежего "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Что думаете об онгоинге - "${name}"?\n${ending}`;
+
+            return {
+                text: text(anime.fullName),
+                tts: text(anime.name),
+            }
+        },
+        (anime: Anime): TTSPhrase => {
+            const ending = pickRandomPhrase(phrases.NEED_MORE);
+            const text = (name) => `Слышали что-то о свежем "${name}"?\n${ending}`;
 
             return {
                 text: text(anime.fullName),
