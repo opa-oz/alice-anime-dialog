@@ -9,13 +9,15 @@
   "private": false,
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "images": "node scripts/replace-images.ts",
     "start": "ts-node server.ts",
     "prebuild": "rimraf ./build && ls -la",
     "postbuild": "copyfiles ./resources/* .env build",
-    "build": "tsc"
+    "build": "tsc",
+    "images": "ts-node scripts/replace-images.ts",
+    "collect": "ts-node ./scripts/collect-from-shikimori.ts"
   },
   "dependencies": {
+    "async": "^3.2.0",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
@@ -23,6 +25,7 @@
     "fs-extra": "^9.0.1",
     "fuse.js": "^6.4.0",
     "global": "^4.4.0",
+    "node-fetch": "^2.6.1",
     "standard-version": "^8.0.2",
     "uuid": "^8.3.0",
     "winston": "^3.3.3",
