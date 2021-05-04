@@ -13,6 +13,7 @@ VOLUME /app/logs
 # Открываем порты наружу
 EXPOSE 3000
 EXPOSE 80
+EXPOSE 443
 
 # Переносим запускатор
 COPY docker-entrypoint.sh /docker-entrypoint.sh
@@ -29,6 +30,9 @@ RUN apt-get update && apt-get install -y nginx
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/mime.types /etc/nginx/mime.types
+
+COPY certificates certificates/
+COPY public public/
 
 WORKDIR /app
 
