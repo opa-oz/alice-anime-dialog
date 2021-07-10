@@ -17,6 +17,7 @@ export type UserSession = {
     isAnimeShown?: boolean;
     isDescriptionShown?: boolean;
     askedForOngoing?: boolean;
+    readyToTopAlice?: boolean;
 }
 
 export type Session = {

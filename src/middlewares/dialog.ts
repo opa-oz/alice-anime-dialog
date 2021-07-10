@@ -50,7 +50,8 @@ const defaultAnswer = ({ res, version, session, logId }: Params) => {
             pickRandomItem(GENRES_LIST),
             pickRandomItem(GENRES_LIST),
             'Любой жанр',
-            'Порекомендуй аниме',
+            pickRandomItem(['Топ "Гуру"', 'Топ Алисы']),
+            'Что новенького?'
         ])
     })
 };
@@ -92,7 +93,7 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                 'Что посмотреть?',
                 pickRandomItem(GENRES_LIST),
                 'Любой жанр',
-                'Порекомендуй аниме',
+                'Топ "Гуру"',
             ])
         }, orig === PING_COMMAND);
     }
@@ -148,6 +149,13 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                 log_id: defaultRes.logId,
             });
 
+            if (userSession?.readyToTopAlice && callToAction !== Commands.DISAGREE && callToAction !== Commands.HELP) {
+                return responseToUser(defaultRes, {
+                    text: pickRandomPhrase(phrases.LOCAL_TOP_ANSWER) as string,
+                    end_session: true
+                });
+            }
+
             switch (callToAction) {
                 case Commands.HELP: {
                     return responseToUser(defaultRes, {
@@ -185,12 +193,26 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                                 'Покажи ещё',
                                 'Любой жанр',
                                 'Случайное аниме',
+                                pickRandomItem(['Топ "Гуру"', 'Топ Алисы']),
                                 'Хватит'
                             ])
                         });
                     }
 
                     break;
+                }
+                case Commands.LOCAL_TOP: {
+                    sessionStorage[session?.session_id] = {
+                        readyToTopAlice: true,
+                        lastUpdateTime: Date.now(),
+                    };
+
+                    return responseToUser(defaultRes, {
+                        text: pickRandomPhrase(phrases.LOCAL_TOP) as string,
+                        buttons: buildButtons([
+                            'Стоп',
+                        ])
+                    });
                 }
                 case Commands.DISAGREE: {
                     if (userSession) {
@@ -209,36 +231,34 @@ export default async (req: Express.Request, res: Express.Response): Promise<void
                     break;
                 }
                 case Commands.ONGOINGS: {
-                    if (userSession) {
-                        let availableAnimeList = ONGOINGS_LIST;
-                        if (userSession && userSession.anime) {
-                            availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
-                        }
-
-                        const anime = pickRandomItem(availableAnimeList);
-                        sessionStorage[session.session_id] = {
-                            isAnimeShown: true,
-                            askedForOngoing: true,
-                            anime,
-                            lastUpdateTime: Date.now(),
-                        };
-
-                        return responseToUser(defaultRes, {
-                            ...(pickRandomPhrase(phrases.ONGOING, [anime]) as TTSPhrase),
-                            buttons: buildButtons([
-                                {
-                                    title: 'Открыть Шикимори',
-                                    url: anime.url,
-                                    hide: false,
-                                },
-                                'Расскажи больше',
-                                pickRandomItem(GENRES_LIST),
-                                'Любой жанр',
-                                'Ещё'
-                            ])
-                        });
+                    let availableAnimeList = ONGOINGS_LIST;
+                    if (userSession && userSession.anime) {
+                        availableAnimeList = availableAnimeList.filter(({ index }) => index !== userSession?.anime?.index);
                     }
-                    break;
+
+                    const anime = pickRandomItem(availableAnimeList);
+                    sessionStorage[session.session_id] = {
+                        isAnimeShown: true,
+                        askedForOngoing: true,
+                        anime,
+                        lastUpdateTime: Date.now(),
+                    };
+
+                    return responseToUser(defaultRes, {
+                        ...(pickRandomPhrase(phrases.ONGOING, [anime]) as TTSPhrase),
+                        buttons: buildButtons([
+                            {
+                                title: 'Открыть Шикимори',
+                                url: anime.url,
+                                hide: false,
+                            },
+                            'Расскажи больше',
+                            'Ещё',
+                            pickRandomItem(GENRES_LIST),
+                            'Любой жанр',
+                            pickRandomItem(['Топ "Гуру"', 'Топ Алисы']),
+                        ])
+                    });
                 }
                 case Commands.MORE: {
                     if (userSession) {

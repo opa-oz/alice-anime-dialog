@@ -9,7 +9,8 @@ export enum Commands {
     RANDOM,
     OPEN,
     HELP,
-    ONGOINGS
+    ONGOINGS,
+    LOCAL_TOP
 }
 
 export const COMMANDS_LIST = [
@@ -137,9 +138,41 @@ export const COMMANDS_LIST = [
         text: 'сейчас выходит',
         command: Commands.ONGOINGS
     },
+    {
+        text: 'рейтинг',
+        command: Commands.LOCAL_TOP,
+    },
+    {
+        text: 'топ',
+        command: Commands.LOCAL_TOP,
+    },
+    {
+        text: 'мой топ',
+        command: Commands.LOCAL_TOP,
+    },
+    {
+        text: 'топ алисы',
+        command: Commands.LOCAL_TOP,
+    },
+    {
+        text: 'топ гуру',
+        command: Commands.LOCAL_TOP,
+    },
 ];
 
 export const phrases = {
+    LOCAL_TOP_ANSWER: [
+        (): string => 'Спасибо за предложение!',
+        (): string => 'Отлично! Думаю другим пользователям понравится',
+        (): string => 'Ооо, я думала об этом тайтле! Шикарный выбор! Спасибо!',
+        (): string => 'Спасибо! Ожидайте увидеть свою рекомендацию на сайте!',
+    ],
+    LOCAL_TOP: [
+        (): string => 'Такое дело - я решила собрать топ аниме от своих пользователей, чтобы потом составить наш собственный топ аниме! \nВы мне очень поможете, если назовёте своё любимое аниме прямо сейчас!',
+        (): string => 'Я собираюсь составить свой собственный топ аниме! Назову его... Хм.. Топ "Гуру"? Шикарно! \nКакое вот у Вас любимое аниме? Я обязательно включу его в топ!',
+        (): string => 'Я с командой обучаю ML модель для рекомендации аниме на основе предпочтений моих пользователей. \nХотите что-то предложить? Просто назовите тайтл и я всё запомню!',
+        (): string => 'Я делаю сайт Топ "Гуру", с рекомендациями аниме от моих пользователей, поможете? \nНазовите Ваше любимое аниме и он попадёт в мой рейтинг!',
+    ],
     NEED_MORE: [
         (): string => 'Рассказать подробнее?',
         (): string => 'Рассказать больше?',
@@ -348,7 +381,7 @@ export const phrases = {
         },
         (anime: Anime): TTSPhrase => {
             const ending = pickRandomPhrase(phrases.NEED_MORE);
-            const text = (name) => `Рекомендую "${name}". Оно прямо сейчас выходит! Это же круто!.\n${ending}`;
+            const text = (name) => `Рекомендую "${name}". Оно прямо сейчас выходит! Это же круто!\n${ending}`;
 
             return {
                 text: text(anime.fullName),
