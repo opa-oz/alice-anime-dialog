@@ -1,17 +1,17 @@
 pipeline {
     environment {
         registry = 'cr.yandex/crpadf0io6tdcrtci8sq'
-        registryCredential = 'YaCloud'
+        registryCredential = 'yandex-cloud-credentials'
 
-        githubCredentials = 'github'
+        githubCredentials = 'jenkins-github'
         githubUrl = 'https://github.com/opa-oz/alice-anime-dialog'
 
         imageName = 'anime-alice'
         imageTag = "testing.${BUILD_ID}"
 
         envFile = 'dialogs-env-file'
-        certificatesFile = 'certificates'
-        remoteServerFile = 'remote-server'
+        certificatesFile = 'dialog-certificates'
+        remoteServerFile = 'anime-alice-vm'
 	}
 
     agent any
