@@ -57,9 +57,15 @@ pipeline {
 						remote.identityFile = identity
 
 						sshPut remote: remote, from: './deploy/update.sh', into: '.'
+						sshPut remote: remote, from: './deploy/clean.sh', into: '.'
+						sshPut remote: remote, from: './deploy/run.sh', into: '.'
 
 						sshCommand remote: remote, command: 'chmod +x update.sh'
+						sshCommand remote: remote, command: 'chmod +x clean.sh'
+						sshCommand remote: remote, command: 'chmod +x run.sh'
 						sshCommand remote: remote, command: "IMAGE_NAME=${env.registry}/${env.imageName}:${env.imageTag} ./update.sh"
+						sshCommand remote: remote, command: "./clean.sh"
+						sshCommand remote: remote, command: "IMAGE_NAME=${env.registry}/${env.imageName}:${env.imageTag} ./run.sh"
 					}
 				}
 			}
