@@ -111,3 +111,5 @@ dist
 build
 
 .DS_Store
+
+storage/combined.log.2021-05-04
