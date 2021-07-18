@@ -7,7 +7,7 @@ pipeline {
         githubUrl = 'https://github.com/opa-oz/alice-anime-dialog'
 
         imageName = 'anime-alice'
-        imageTag = "testing.${BUILD_ID}"
+        imageTag = "master.${BUILD_ID}"
 
         envFile = 'dialogs-env-file'
         certificatesFile = 'dialog-certificates'
