@@ -1,0 +1,16 @@
+@import "variables";
+@import "fonts";
+
+.header {
+  width: 100%;
+  display: grid;
+  height: 68px;
+  padding: 12px $common_padding;
+  background-color: $primary;
+  grid-template-columns: max-content;
+}
+
+.text {
+  @include LogoText();
+  display: grid;
+}

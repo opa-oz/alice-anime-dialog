@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
 import fetch from 'node-fetch';
-import { Anime } from "../src/types";
+import { Anime } from "../packages/dialog/src/types";
 import { Meta, readMeta } from "./utils/meta";
 import wait from "./utils/wait";
 import formatResponse from "./utils/format-response";

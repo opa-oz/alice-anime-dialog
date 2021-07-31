@@ -12,11 +12,11 @@ import logger from "../utils/logger";
 import { Express } from "express";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const ANIME_LIST: Array<Anime> = require('../../resources/anime-list.json');
+const ANIME_LIST: Array<Anime> = require('../../../../resources/anime-list.json');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const GENRES_LIST: Array<string> = require('../../resources/genres.json');
+const GENRES_LIST: Array<string> = require('../../../../resources/genres.json');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const ONGOINGS_LIST: Array<Anime> = require('../../resources/ongoing-list.json');
+const ONGOINGS_LIST: Array<Anime> = require('../../../../resources/ongoing-list.json');
 
 const sessionStorage: { [item: string]: UserSession } = {};
 

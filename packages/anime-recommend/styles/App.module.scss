@@ -1,0 +1,13 @@
+@import "variables";
+
+.container {
+  display: grid;
+  background-color: $background;
+  position: relative;
+  grid-template-rows: max-content auto max-content;
+}
+
+.main {
+  min-height: 400px;
+}
+

@@ -1,28 +1,19 @@
 {
   "compilerOptions": {
-    "outDir": "./build/",
-    // path to output directory
     "sourceMap": false,
-    // allow sourcemap support
     "strictNullChecks": true,
-    // enable strict null checks as a best practice
     "module": "commonjs",
     "esModuleInterop": true,
-    // specify module code generation
     "target": "es6",
     "lib": [
       "es2015"
     ],
-    // specify ECMAScript target version
     "allowJs": true,
-    // allow a partial TypeScript and JavaScript codebase
     "types": [
       "node"
     ]
   },
   "include": [
-    "server.ts",
-    "./src/",
-    "./resources/"
+    "./__scripts__/"
   ]
 }

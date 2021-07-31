@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,700&display=swap');
+@import "variables";
+
+@mixin CommonFont() {
+  font-family: 'Manrope', sans-serif;
+  font-style: normal;
+  color: $text;
+}
+
+@mixin LogoText() {
+  @include CommonFont();
+
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 41px;
+}
+
+@mixin Header() {
+  @include CommonFont();
+
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 33px;
+}
+
+@mixin ButtonText() {
+  @include CommonFont();
+
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 21px;
+}
+
+@mixin SubHeader() {
+  @include CommonFont();
+
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+@mixin Text() {
+  @include CommonFont();
+
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+}
+
+@mixin TextLink() {
+  @include Text();
+
+  text-decoration-line: underline;
+}
+
+@mixin BadgeText() {
+  font-family: 'Roboto', sans-serif;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 28px;
+  color: $text;
+}

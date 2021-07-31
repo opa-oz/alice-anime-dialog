@@ -1,0 +1,58 @@
+@import "fonts";
+@import "variables";
+
+.footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 40px $common_padding;
+  background-color: $primary;
+  position: sticky;
+  bottom: 0;
+}
+
+.logo {
+  @include Header();
+}
+
+.links {
+  display: grid;
+  grid-auto-flow: row;
+  row-gap: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.link {
+  @include TextLink;
+}
+
+.copyright {
+  @include Text;
+}
+
+.group {
+  display: grid;
+  grid-auto-flow: row;
+  row-gap: 12px;
+  padding-top: 10px;
+}
+
+.groupHeader {
+  @include SubHeader;
+}
+
+.groupList {
+  display: grid;
+  grid-auto-flow: row;
+  row-gap: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.groupLink {
+  @include Text;
+}
+
+.groupLink a {
+  @include TextLink;
+}

@@ -7,7 +7,7 @@ import parallelLimit from 'async/parallelLimit';
 import series from 'async/series';
 import asyncify from 'async/asyncify';
 
-import { Anime } from "../src/types";
+import { Anime } from "../packages/dialog/src/types";
 import wait from "./utils/wait";
 import { Meta, readMeta, writeMeta } from "./utils/meta";
 import { AnimeFromShikimori, FullAnime } from "./utils/types";
