@@ -3,7 +3,7 @@
 
     /* COUNTDOWN */
     $('#countdown').countdown({
-        date: '06 October 2021 00:00:00', // Put your date here
+        date: '06 October 2022 00:00:00', // Put your date here
         format: 'on'
     }, () => {
         console.log('Hi there');
