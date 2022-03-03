@@ -113,3 +113,5 @@ build
 .DS_Store
 
 storage/combined.log.2021-05-04
+__pycache__
+venv
