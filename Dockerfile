@@ -3,6 +3,8 @@
 # В качестве базового образа для сборки используем node:12
 FROM node:12
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 # Установим рабочую директорию для билда
 WORKDIR /app
 
